@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toonflix/models/webtoon.dart';
 import 'package:toonflix/models/webtoon_episode_model.dart';
 import 'package:toonflix/models/webtoon_tail_model.dart';
@@ -17,11 +18,22 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   late Future<WebtoonDetailModel> webtoon;
   late Future<List<WebtoonEpisodeModel>> episodes;
+  late final SharedPreferences prefs;
+  late bool isFavorite;
   @override
   void initState() {
     super.initState();
+    isFavorite = false;
+    initPref();
     webtoon = ApiService.getToonById(widget.webtoon.id);
     episodes = ApiService.getLatestEpisodesById(widget.webtoon.id);
+  }
+
+  void initPref() async {
+    prefs = await SharedPreferences.getInstance();
+    final favoriteWebtoons = prefs.getStringList('favoriteWebtoons') ?? [];
+    isFavorite = favoriteWebtoons.contains(widget.webtoon.id);
+    setState(() {});
   }
 
   onEpisodesClick(String episodeId) async {
@@ -46,9 +58,22 @@ class _DetailScreenState extends State<DetailScreen> {
               Text(widget.webtoon.title, style: const TextStyle(fontSize: 24)),
           actions: [
             IconButton(
-              icon: const Icon(Icons.favorite_border),
-              onPressed: () {
-                Navigator.pop(context);
+              icon: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: Colors.red,
+              ),
+              onPressed: () async {
+                final favoriteWebtoons =
+                    prefs.getStringList('favoriteWebtoons') ?? [];
+                if (isFavorite) {
+                  favoriteWebtoons.remove(widget.webtoon.id);
+                } else {
+                  favoriteWebtoons.add(widget.webtoon.id);
+                }
+                prefs.setStringList('favoriteWebtoons', favoriteWebtoons);
+                setState(() {
+                  isFavorite = !isFavorite;
+                });
               },
             ),
           ]),
