@@ -3,7 +3,7 @@ class Webtoon {
   final String thumb;
   final String id;
 
-  Webtoon({
+  const Webtoon({
     required this.title,
     required this.thumb,
     required this.id,
@@ -16,6 +16,12 @@ class Webtoon {
       id: json['id'],
     );
   }
+
+  /// empty
+  Webtoon.empty()
+      : title = '',
+        thumb = '',
+        id = '';
 
   @override
   String toString() {
